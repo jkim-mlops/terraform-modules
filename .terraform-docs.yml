@@ -1,0 +1,14 @@
+formatter: markdown
+
+content: |-
+  {{ .Header }}
+
+  ## Example
+
+  ```hcl
+  {{ include "example/main.tf" }}
+  ```
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
