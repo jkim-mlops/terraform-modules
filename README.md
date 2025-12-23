@@ -1,24 +1,15 @@
 # terraform-modules
 Custom modules to simplify terraform deployments.
 
-<!-- BEGIN_TF_DOCS -->
-
+## Usage
+Reference the modules as shown in the example below. For more details please view the docs for each individual module.
 
 ## Example
 
 ```hcl
-module "submodule" {
-    source = "git@github.com:jkim-mlops/terraform-modules.git//modules/submodule?ref=0.1.0"
+module "<replaceme>" {
+    source = "git@github.com:jkim-mlops/terraform-modules.git//modules/<replaceme>?ref=0.1.0"
 
     // ...
 }
 ```
-
-## Inputs
-
-No inputs.
-
-## Outputs
-
-No outputs.
-<!-- END_TF_DOCS -->

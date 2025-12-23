@@ -1,3 +1,10 @@
+/**
+ * # vpc
+ *
+ * VPC public/private networking setup with internet access.
+ */
+
+
 //
 // VPC and Subnets
 

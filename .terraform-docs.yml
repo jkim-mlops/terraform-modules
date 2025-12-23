@@ -12,3 +12,9 @@ content: |-
   {{ .Inputs }}
 
   {{ .Outputs }}
+
+  {{ .Modules }}
+
+  {{ .Requirements }}
+
+  {{ .Providers }}

@@ -1,5 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
+# docker
 
+Build Docker containers locally and push to ECR.
 
 ## Example
 
@@ -29,4 +31,22 @@ module "docker" {
 | <a name="output_image"></a> [image](#output\_image) | The Docker image. |
 | <a name="output_image_name"></a> [image\_name](#output\_image\_name) | The Docker image name. |
 | <a name="output_image_tag"></a> [image\_tag](#output\_image\_tag) | The Docker image tag. |
+
+## Modules
+
+No modules.
+
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.27.0 |
+| <a name="requirement_docker"></a> [docker](#requirement\_docker) | ~> 3.6.2 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.27.0 |
+| <a name="provider_docker"></a> [docker](#provider\_docker) | ~> 3.6.2 |
 <!-- END_TF_DOCS -->

@@ -1,3 +1,10 @@
+/**
+ * # ecs
+ *
+ * ECS cluster setup with auto-scaling via Capacity Providers. 
+ */
+
+
 //
 // CloudWatch Log Groups
 

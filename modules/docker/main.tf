@@ -1,3 +1,10 @@
+/**
+ * # docker
+ *
+ * Build Docker containers locally and push to ECR. 
+ */
+
+
 locals {
   full_ref = "${var.image_name}:${var.image_tag}"
 }

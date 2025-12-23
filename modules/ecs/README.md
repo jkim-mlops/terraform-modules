@@ -1,5 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
+# ecs
 
+ECS cluster setup with auto-scaling via Capacity Providers.
 
 ## Example
 
@@ -77,4 +79,20 @@ module "ecs" {
 | <a name="output_service"></a> [service](#output\_service) | ECS service resource(s) (full object map when using for\_each). |
 | <a name="output_task_execution_role"></a> [task\_execution\_role](#output\_task\_execution\_role) | ARN of the ECS task execution role |
 | <a name="output_task_roles"></a> [task\_roles](#output\_task\_roles) | Map of ECS task roles by task name |
+
+## Modules
+
+No modules.
+
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.27.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.27.0 |
 <!-- END_TF_DOCS -->
