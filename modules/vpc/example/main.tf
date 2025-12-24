@@ -1,5 +1,9 @@
+
+
 module "vpc" {
-  source     = "../../modules/vpc"
+  // please remember to version constrain this module with `?ref=<your version>`
+  source = "git@github.com:jkim-mlops/terraform-modules.git//modules/vpc"
+
   name       = var.name
   region     = var.aws_region
   cidr_block = "10.0.0.0/16"

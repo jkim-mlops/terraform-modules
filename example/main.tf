@@ -1,5 +1,6 @@
 module "submodule" {
-    source = "git@github.com:jkim-mlops/terraform-modules.git//modules/submodule?ref=0.1.0"
+    // please remember to version constrain this module with `?ref=<your version>`
+    source = "git@github.com:jkim-mlops/terraform-modules.git//modules/submodule"
 
     // ...
 }

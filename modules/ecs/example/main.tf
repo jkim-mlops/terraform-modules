@@ -1,5 +1,6 @@
 module "ecs" {
-  source = "../../modules/ecs"
+  // please remember to version constrain this module with `?ref=<your version>`
+  source = "git@github.com:jkim-mlops/terraform-modules.git//modules/ecs"
 
   name            = var.name
   cidr_blocks     = [module.vpc.vpc_cidr_block]

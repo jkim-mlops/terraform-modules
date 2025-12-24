@@ -7,8 +7,9 @@ Reference the modules as shown in the example below. For more details please vie
 ## Example
 
 ```hcl
-module "<replaceme>" {
-    source = "git@github.com:jkim-mlops/terraform-modules.git//modules/<replaceme>?ref=0.1.0"
+module "submodule" {
+    // please remember to version constrain this module with `?ref=<your version>`
+    source = "git@github.com:jkim-mlops/terraform-modules.git//modules/submodule"
 
     // ...
 }
