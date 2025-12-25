@@ -17,3 +17,8 @@ output "service" {
   description = "ECS service resource(s) (full object map when using for_each)."
   value       = aws_ecs_service.this
 }
+
+output "task_definitions" {
+  description = "Map of ECS task definitions by task name"
+  value       = aws_ecs_task_definition.this
+}

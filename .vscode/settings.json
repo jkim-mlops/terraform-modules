@@ -1,5 +1,7 @@
 {
     "conventionalCommits.scopes": [
-        "modules"
+        "modules",
+        "ecs",
+        ".vscode"
     ]
 }
