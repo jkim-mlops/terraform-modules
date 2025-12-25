@@ -78,6 +78,7 @@ module "ecs" {
 |------|-------------|
 | <a name="output_cluster"></a> [cluster](#output\_cluster) | ECS cluster resource (full object). |
 | <a name="output_service"></a> [service](#output\_service) | ECS service resource(s) (full object map when using for\_each). |
+| <a name="output_task_definitions"></a> [task\_definitions](#output\_task\_definitions) | Map of ECS task definitions by task name |
 | <a name="output_task_execution_role"></a> [task\_execution\_role](#output\_task\_execution\_role) | ARN of the ECS task execution role |
 | <a name="output_task_roles"></a> [task\_roles](#output\_task\_roles) | Map of ECS task roles by task name |
 
