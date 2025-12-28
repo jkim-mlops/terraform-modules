@@ -290,13 +290,20 @@ resource "aws_ecs_capacity_provider" "this" {
   }
 }
 
+
+# Set FARGATE as the default capacity provider
 resource "aws_ecs_cluster_capacity_providers" "this" {
   cluster_name       = aws_ecs_cluster.this.name
-  capacity_providers = [aws_ecs_capacity_provider.this.name]
+  capacity_providers = ["FARGATE", "FARGATE_SPOT", aws_ecs_capacity_provider.this.name]
+
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE"
+    weight            = 1
+  }
 
   default_capacity_provider_strategy {
     capacity_provider = aws_ecs_capacity_provider.this.name
-    weight            = 0
+    weight            = 1
   }
 }
 
@@ -339,6 +346,11 @@ resource "aws_ecs_service" "this" {
 
   force_new_deployment = true
 
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE"
+    base              = 0
+    weight            = 1
+  }
   capacity_provider_strategy {
     capacity_provider = aws_ecs_capacity_provider.this.name
     base              = 0

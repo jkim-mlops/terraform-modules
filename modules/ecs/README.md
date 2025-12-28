@@ -59,13 +59,13 @@ module "ecs" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_architecture"></a> [architecture](#input\_architecture) | CPU architecture for ECS container instances (x86\_64 or arm64). Must align with instance\_type. | `string` | `"arm64"` | no |
+| <a name="input_architecture"></a> [architecture](#input\_architecture) | CPU architecture for ECS container instances (x86\_64 or arm64). Must align with instance\_type. | `string` | n/a | yes |
 | <a name="input_assign_public_ip"></a> [assign\_public\_ip](#input\_assign\_public\_ip) | Assign a public IP to Fargate tasks (only valid for public subnets). | `bool` | `false` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | n/a | yes |
 | <a name="input_cidr_blocks"></a> [cidr\_blocks](#input\_cidr\_blocks) | List of CIDR blocks for security group ingress rules | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
-| <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type for the ECS capacity provider's launch template | `string` | `"m5.large"` | no |
-| <a name="input_log_retention_days"></a> [log\_retention\_days](#input\_log\_retention\_days) | CloudWatch log retention in days | `number` | `1` | no |
-| <a name="input_logging_enabled"></a> [logging\_enabled](#input\_logging\_enabled) | Enable CloudWatch logging for tasks | `bool` | `false` | no |
+| <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type for the ECS capacity provider's launch template | `string` | n/a | yes |
+| <a name="input_log_retention_days"></a> [log\_retention\_days](#input\_log\_retention\_days) | CloudWatch log retention in days | `number` | n/a | yes |
+| <a name="input_logging_enabled"></a> [logging\_enabled](#input\_logging\_enabled) | Enable CloudWatch logging for tasks | `bool` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | Name of the ECS cluster | `string` | n/a | yes |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | List of security group IDs for the ECS service. | `list(string)` | `[]` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs for the ECS service network configuration. | `list(string)` | n/a | yes |
