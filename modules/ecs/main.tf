@@ -340,18 +340,6 @@ resource "aws_ecs_service" "this" {
   force_new_deployment = true
 
   capacity_provider_strategy {
-    capacity_provider = "FARGATE"
-    base              = 0
-    weight            = 1
-  }
-
-  capacity_provider_strategy {
-    capacity_provider = "FARGATE_SPOT"
-    base = 0
-    weight = 1
-  }
-
-  capacity_provider_strategy {
     capacity_provider = aws_ecs_capacity_provider.this.name
     base              = 0
     weight            = 1
