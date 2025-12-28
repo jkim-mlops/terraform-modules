@@ -1,3 +1,7 @@
+output "security_group" {
+  description = "The security group used by the ECS service."
+  value       = aws_security_group.this
+}
 output "task_execution_role" {
   description = "ARN of the ECS task execution role"
   value       = aws_iam_role.this

@@ -1,3 +1,29 @@
+variable "launch_type" {
+  description = "ECS launch type: EC2 or FARGATE. Controls task definition compatibility."
+  type        = string
+  default     = "FARGATE"
+  validation {
+    condition     = contains(["EC2", "FARGATE"], upper(var.launch_type))
+    error_message = "launch_type must be either EC2 or FARGATE."
+  }
+}
+variable "min_size" {
+  description = "Minimum number of instances in the ECS Auto Scaling Group."
+  type        = number
+  default     = 0
+}
+
+variable "max_size" {
+  description = "Maximum number of instances in the ECS Auto Scaling Group."
+  type        = number
+  default     = 1
+}
+
+variable "desired_capacity" {
+  description = "Desired number of instances in the ECS Auto Scaling Group."
+  type        = number
+  default     = 0
+}
 variable "name" {
   description = "Name of the ECS cluster"
   type        = string
