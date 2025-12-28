@@ -24,7 +24,7 @@ resource "docker_image" "this" {
   build {
     context  = var.build_context
     tag      = ["${aws_ecr_repository.this.repository_url}:${var.image_tag}"]
-    platform = "linux/amd64"
+    platform = var.platform
   }
   triggers = {
     build_sha = sha1(join("", [for f in fileset(var.build_context, "**") : sha1(file("${var.build_context}/${f}"))]))
