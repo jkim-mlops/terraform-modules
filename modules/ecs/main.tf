@@ -300,11 +300,6 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
     capacity_provider = "FARGATE"
     weight            = 1
   }
-
-  default_capacity_provider_strategy {
-    capacity_provider = aws_ecs_capacity_provider.this.name
-    weight            = 1
-  }
 }
 
 //
