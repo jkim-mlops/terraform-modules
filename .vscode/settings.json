@@ -3,6 +3,7 @@
         "modules",
         "ecs",
         ".vscode",
-        "docker"
+        "docker",
+        "main.tf"
     ]
 }
