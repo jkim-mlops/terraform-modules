@@ -23,7 +23,7 @@ module "docker" {
 | <a name="input_build_context"></a> [build\_context](#input\_build\_context) | The build context for building the Docker image. | `string` | n/a | yes |
 | <a name="input_image_name"></a> [image\_name](#input\_image\_name) | The name of the Docker image to pull or build. | `string` | n/a | yes |
 | <a name="input_image_tag"></a> [image\_tag](#input\_image\_tag) | The tag of the Docker image to pull or build. | `string` | n/a | yes |
-| <a name="input_platform"></a> [platform](#input\_platform) | The target platform for the Docker image build (e.g., linux/amd64, linux/arm64). | `string` | `"linux/amd64"` | no |
+| <a name="input_platform"></a> [platform](#input\_platform) | The target platform for the Docker image build (e.g., linux/amd64, linux/arm64). | `string` | n/a | yes |
 
 ## Outputs
 

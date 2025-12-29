@@ -165,7 +165,7 @@ resource "aws_iam_instance_profile" "instance" {
 resource "aws_ecs_task_definition" "this" {
   for_each                 = var.tasks
   family                   = each.key
-  requires_compatibilities = ["EC2"]
+  requires_compatibilities = [upper(var.launch_type)]
   network_mode             = "awsvpc"
   cpu                      = each.value.container_definition.cpu
   memory                   = each.value.container_definition.memory
@@ -187,9 +187,12 @@ resource "aws_ecs_task_definition" "this" {
     )
   ])
 
-  runtime_platform {
-    operating_system_family = "LINUX"
-    cpu_architecture        = upper(var.architecture == "arm64" ? "ARM64" : "X86_64")
+  dynamic "runtime_platform" {
+    for_each = upper(var.launch_type) == "FARGATE" ? [1] : []
+    content {
+      operating_system_family = "LINUX"
+      cpu_architecture        = upper(var.architecture == "arm64" ? "ARM64" : "X86_64")
+    }
   }
 
 }
@@ -242,9 +245,9 @@ echo "ECS_CLUSTER=${aws_ecs_cluster.this.name}" >> /etc/ecs/ecs.config
 
 resource "aws_autoscaling_group" "this" {
   name                  = "${var.name}-scale-to-zero"
-  min_size              = 0
-  max_size              = 1
-  desired_capacity      = 0
+  min_size              = var.min_size
+  max_size              = var.max_size
+  desired_capacity      = var.desired_capacity
   vpc_zone_identifier   = var.subnet_ids
   protect_from_scale_in = false
 
@@ -296,7 +299,7 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
 
   default_capacity_provider_strategy {
     capacity_provider = aws_ecs_capacity_provider.this.name
-    weight            = 0
+    weight            = 1
   }
 }
 

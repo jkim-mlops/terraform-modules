@@ -2,6 +2,8 @@
     "conventionalCommits.scopes": [
         "modules",
         "ecs",
-        ".vscode"
+        ".vscode",
+        "docker",
+        "main.tf"
     ]
 }

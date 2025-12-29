@@ -1,3 +1,29 @@
+variable "launch_type" {
+  description = "ECS launch type: EC2 or FARGATE. Controls task definition compatibility."
+  type        = string
+  default     = "FARGATE"
+  validation {
+    condition     = contains(["EC2", "FARGATE"], upper(var.launch_type))
+    error_message = "launch_type must be either EC2 or FARGATE."
+  }
+}
+variable "min_size" {
+  description = "Minimum number of instances in the ECS Auto Scaling Group."
+  type        = number
+  default     = 0
+}
+
+variable "max_size" {
+  description = "Maximum number of instances in the ECS Auto Scaling Group."
+  type        = number
+  default     = 1
+}
+
+variable "desired_capacity" {
+  description = "Desired number of instances in the ECS Auto Scaling Group."
+  type        = number
+  default     = 0
+}
 variable "name" {
   description = "Name of the ECS cluster"
   type        = string
@@ -64,13 +90,11 @@ variable "assign_public_ip" {
 variable "instance_type" {
   description = "EC2 instance type for the ECS capacity provider's launch template"
   type        = string
-  default     = "m5.large"
 }
 
 variable "architecture" {
   description = "CPU architecture for ECS container instances (x86_64 or arm64). Must align with instance_type."
   type        = string
-  default     = "arm64"
   validation {
     condition     = contains(["x86_64", "arm64"], var.architecture)
     error_message = "architecture must be one of: x86_64, arm64"
@@ -80,7 +104,6 @@ variable "architecture" {
 variable "logging_enabled" {
   description = "Enable CloudWatch logging for tasks"
   type        = bool
-  default     = false
 }
 
 variable "aws_region" {
@@ -91,5 +114,4 @@ variable "aws_region" {
 variable "log_retention_days" {
   description = "CloudWatch log retention in days"
   type        = number
-  default     = 1
 }

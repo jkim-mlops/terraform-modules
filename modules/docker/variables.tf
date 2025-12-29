@@ -17,5 +17,4 @@ variable "build_context" {
 variable "platform" {
   description = "The target platform for the Docker image build (e.g., linux/amd64, linux/arm64)."
   type        = string
-  default     = "linux/amd64"
 }
