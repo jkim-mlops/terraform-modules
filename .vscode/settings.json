@@ -4,6 +4,7 @@
         "ecs",
         ".vscode",
         "docker",
-        "main.tf"
+        "main.tf",
+        "eks"
     ]
 }
