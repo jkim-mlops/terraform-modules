@@ -60,18 +60,6 @@ variable "gpu_node_group" {
   }
 }
 
-variable "ssh_key_name" {
-  description = "The name of the SSH key pair to use for the EKS node groups."
-  type        = string
-  default     = ""
-}
-
-variable "source_security_group_ids" {
-  description = "The security group IDs that are allowed to SSH into the EKS nodes."
-  type        = list(string)
-  default     = []
-}
-
 variable "release_version" {
   description = "The release version of the EKS optimized AMI."
   type        = string

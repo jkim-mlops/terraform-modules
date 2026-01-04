@@ -145,11 +145,6 @@ resource "aws_eks_node_group" "cpu" {
     min_size     = var.cpu_node_group.min_size
   }
 
-  remote_access {
-    ec2_ssh_key               = var.ssh_key_name
-    source_security_group_ids = var.source_security_group_ids
-  }
-
   ami_type        = var.cpu_node_group.ami_type
   capacity_type   = var.cpu_node_group.capacity_type
   release_version = var.release_version
@@ -180,10 +175,7 @@ resource "aws_eks_node_group" "gpu" {
     min_size     = var.gpu_node_group.min_size
   }
 
-  remote_access {
-    ec2_ssh_key               = var.ssh_key_name
-    source_security_group_ids = var.source_security_group_ids
-  }
+  // remote_access block removed
 
   ami_type        = var.gpu_node_group.ami_type
   capacity_type   = var.gpu_node_group.capacity_type
