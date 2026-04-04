@@ -207,3 +207,58 @@ resource "aws_autoscaling_group" "nat" {
     propagate_at_launch = true
   }
 }
+
+# -----------------------------------------------------------------------------
+# ECR VPC Endpoints (NAT Instance only)
+# -----------------------------------------------------------------------------
+
+resource "aws_security_group" "ecr_endpoint" {
+  count       = local.nat_instance
+  name        = "${var.name}-ecr-endpoint"
+  description = "Security group for ECR VPC endpoints"
+  vpc_id      = aws_vpc.this.id
+
+  ingress {
+    description = "HTTPS from VPC"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.this.cidr_block]
+  }
+
+  tags = {
+    Name = "${var.name}-ecr-endpoint"
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  count             = local.nat_instance
+  vpc_id            = aws_vpc.this.id
+  service_name      = "com.amazonaws.${var.region}.ecr.api"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids         = [for s in aws_subnet.this : s.id if !s.map_public_ip_on_launch]
+  security_group_ids = [aws_security_group.ecr_endpoint[0].id]
+
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.name}-ecr-api"
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  count             = local.nat_instance
+  vpc_id            = aws_vpc.this.id
+  service_name      = "com.amazonaws.${var.region}.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids         = [for s in aws_subnet.this : s.id if !s.map_public_ip_on_launch]
+  security_group_ids = [aws_security_group.ecr_endpoint[0].id]
+
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.name}-ecr-dkr"
+  }
+}
