@@ -14,6 +14,12 @@ MAC=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
 ENI_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
   "http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/interface-id")
 
+# Disable source/dest check (required for NAT)
+aws ec2 modify-instance-attribute \
+  --instance-id "$INSTANCE_ID" \
+  --no-source-dest-check \
+  --region "${region}"
+
 # Enable IP forwarding
 sysctl -w net.ipv4.ip_forward=1
 echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.d/99-nat.conf

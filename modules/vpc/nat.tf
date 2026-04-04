@@ -121,7 +121,10 @@ resource "aws_iam_role_policy" "nat" {
     Statement = [
       {
         Effect = "Allow"
-        Action = "ec2:AssociateAddress"
+        Action = [
+          "ec2:AssociateAddress",
+          "ec2:ModifyInstanceAttribute"
+        ]
         Resource = [
           aws_eip.nat_instance[0].arn,
           "arn:aws:ec2:${var.region}:*:instance/*"
