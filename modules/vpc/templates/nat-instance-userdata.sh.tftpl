@@ -1,0 +1,40 @@
+#!/bin/bash
+set -euo pipefail
+
+# IMDSv2 token
+TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/instance-id)
+
+MAC=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/mac)
+
+ENI_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
+  "http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/interface-id")
+
+# Enable IP forwarding
+sysctl -w net.ipv4.ip_forward=1
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.d/99-nat.conf
+
+# Configure iptables masquerade
+iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
+
+# Associate EIP
+aws ec2 associate-address \
+  --allocation-id "${eip_alloc_id}" \
+  --instance-id "$INSTANCE_ID" \
+  --region "${region}"
+
+# Create or update private route table to point to this instance's ENI
+aws ec2 create-route \
+  --route-table-id "${route_table_id}" \
+  --destination-cidr-block 0.0.0.0/0 \
+  --network-interface-id "$ENI_ID" \
+  --region "${region}" 2>/dev/null \
+|| aws ec2 replace-route \
+  --route-table-id "${route_table_id}" \
+  --destination-cidr-block 0.0.0.0/0 \
+  --network-interface-id "$ENI_ID" \
+  --region "${region}"
