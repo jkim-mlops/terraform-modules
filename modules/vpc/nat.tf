@@ -278,3 +278,19 @@ resource "aws_vpc_endpoint" "logs" {
     Name = "${var.name}-logs"
   }
 }
+
+resource "aws_vpc_endpoint" "ssm" {
+  count             = local.nat_instance
+  vpc_id            = aws_vpc.this.id
+  service_name      = "com.amazonaws.${var.region}.ssm"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids         = [for s in aws_subnet.this : s.id if !s.map_public_ip_on_launch]
+  security_group_ids = [aws_security_group.ecr_endpoint[0].id]
+
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.name}-ssm"
+  }
+}
