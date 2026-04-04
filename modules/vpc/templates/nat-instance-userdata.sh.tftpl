@@ -24,8 +24,9 @@ aws ec2 modify-instance-attribute \
 sysctl -w net.ipv4.ip_forward=1
 echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.d/99-nat.conf
 
-# Configure iptables masquerade
-iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
+# Configure iptables masquerade on primary interface
+PRIMARY_IF=$(ip -o link show | awk -F': ' '/^2:/{print $2}')
+iptables -t nat -A POSTROUTING -o "$PRIMARY_IF" -j MASQUERADE
 
 # Associate EIP
 aws ec2 associate-address \
