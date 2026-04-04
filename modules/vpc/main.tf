@@ -5,8 +5,9 @@
  */
 
 
-//
-// VPC and Subnets
+# -----------------------------------------------------------------------------
+# VPC and Subnets
+# -----------------------------------------------------------------------------
 
 resource "aws_vpc" "this" {
   cidr_block       = var.cidr_block
@@ -29,8 +30,9 @@ resource "aws_subnet" "this" {
   }
 }
 
-//
-// Route Tables to Public and Private Subnets
+# -----------------------------------------------------------------------------
+# Route Tables
+# -----------------------------------------------------------------------------
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id
@@ -59,8 +61,9 @@ resource "aws_route_table_association" "this" {
   route_table_id = each.value.public ? aws_route_table.public.id : aws_route_table.private.id
 }
 
-//
-// Network Connections (VPC Endpoints and Internet Gateway)
+# -----------------------------------------------------------------------------
+# Network Connections (VPC Endpoints and Internet Gateway)
+# -----------------------------------------------------------------------------
 
 resource "aws_vpc_endpoint" "this" {
   vpc_id       = aws_vpc.this.id
