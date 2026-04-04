@@ -7,6 +7,7 @@ module "vpc" {
   name       = var.name
   region     = var.aws_region
   cidr_block = "10.0.0.0/16"
+  nat_type   = "gateway" # or "instance" for cost savings
   subnets = {
     a-public = {
       availability_zone = "${var.aws_region}a"
