@@ -209,13 +209,13 @@ resource "aws_autoscaling_group" "nat" {
 }
 
 # -----------------------------------------------------------------------------
-# ECR VPC Endpoints (NAT Instance only)
+# VPC Interface Endpoints (NAT Instance only)
 # -----------------------------------------------------------------------------
 
 resource "aws_security_group" "ecr_endpoint" {
   count       = local.nat_instance
-  name        = "${var.name}-ecr-endpoint"
-  description = "Security group for ECR VPC endpoints"
+  name        = "${var.name}-vpc-endpoints"
+  description = "Security group for VPC interface endpoints"
   vpc_id      = aws_vpc.this.id
 
   ingress {
@@ -227,7 +227,7 @@ resource "aws_security_group" "ecr_endpoint" {
   }
 
   tags = {
-    Name = "${var.name}-ecr-endpoint"
+    Name = "${var.name}-vpc-endpoints"
   }
 }
 
@@ -260,5 +260,21 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
 
   tags = {
     Name = "${var.name}-ecr-dkr"
+  }
+}
+
+resource "aws_vpc_endpoint" "logs" {
+  count             = local.nat_instance
+  vpc_id            = aws_vpc.this.id
+  service_name      = "com.amazonaws.${var.region}.logs"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids         = [for s in aws_subnet.this : s.id if !s.map_public_ip_on_launch]
+  security_group_ids = [aws_security_group.ecr_endpoint[0].id]
+
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.name}-logs"
   }
 }
