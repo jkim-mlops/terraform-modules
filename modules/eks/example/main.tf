@@ -1,3 +1,9 @@
+/**
+ * # eks/example
+ *
+ * Example usage of the EKS module with VPC and node group configuration.
+ */
+
 module "vpc" {
   // please remember to version constrain this module with `?ref=<your version>`
   source = "git@github.com:jkim-mlops/terraform-modules.git//modules/vpc"

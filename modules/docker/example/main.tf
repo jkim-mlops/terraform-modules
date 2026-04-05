@@ -1,3 +1,9 @@
+/**
+ * # docker/example
+ *
+ * Example usage of the docker module to build and push images to ECR.
+ */
+
 module "docker" {
   // please remember to version constrain this module with `?ref=<your version>`
   source = "git@github.com:jkim-mlops/terraform-modules.git//modules/docker"

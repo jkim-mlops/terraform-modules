@@ -1,10 +1,13 @@
 {
     "conventionalCommits.scopes": [
-        "modules",
-        "ecs",
+        ".gitignore",
+        ".terraform-docs.yml",
         ".vscode",
         "docker",
+        "ecs",
+        "eks",
         "main.tf",
-        "eks"
+        "modules",
+        "vpc"
     ]
 }

@@ -1,4 +1,8 @@
-
+/**
+ * # vpc/example
+ *
+ * Example usage of the VPC module with public/private subnets and NAT configuration.
+ */
 
 module "vpc" {
   // please remember to version constrain this module with `?ref=<your version>`

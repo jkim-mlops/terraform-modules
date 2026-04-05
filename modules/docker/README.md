@@ -3,18 +3,31 @@
 
 Build Docker containers locally and push to ECR.
 
-## Example
+## Requirements
 
-```hcl
-module "docker" {
-  // please remember to version constrain this module with `?ref=<your version>`
-  source = "git@github.com:jkim-mlops/terraform-modules.git//modules/docker"
+| Name | Version |
+|------|---------|
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.27.0 |
+| <a name="requirement_docker"></a> [docker](#requirement\_docker) | ~> 3.6.2 |
 
-  image_name    = "sqs-polling"
-  image_tag     = "0.3.0"
-  build_context = "./images/sqs-polling"
-}
-```
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.27.0 |
+| <a name="provider_docker"></a> [docker](#provider\_docker) | ~> 3.6.2 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_ecr_repository.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
+| [docker_image.this](https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs/resources/image) | resource |
+| [docker_registry_image.this](https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs/resources/registry_image) | resource |
 
 ## Inputs
 
@@ -33,22 +46,4 @@ module "docker" {
 | <a name="output_image"></a> [image](#output\_image) | The Docker image. |
 | <a name="output_image_name"></a> [image\_name](#output\_image\_name) | The Docker image name. |
 | <a name="output_image_tag"></a> [image\_tag](#output\_image\_tag) | The Docker image tag. |
-
-## Modules
-
-No modules.
-
-## Requirements
-
-| Name | Version |
-|------|---------|
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.27.0 |
-| <a name="requirement_docker"></a> [docker](#requirement\_docker) | ~> 3.6.2 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.27.0 |
-| <a name="provider_docker"></a> [docker](#provider\_docker) | ~> 3.6.2 |
 <!-- END_TF_DOCS -->

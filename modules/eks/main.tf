@@ -4,6 +4,10 @@
  * Amazon EKS cluster with CPU and GPU node groups, IAM roles, and access management.
  */
 
+# -----------------------------------------------------------------------------
+# EKS Cluster
+# -----------------------------------------------------------------------------
+
 resource "aws_eks_cluster" "this" {
   name = var.name
 
@@ -26,8 +30,9 @@ resource "aws_eks_cluster" "this" {
   ]
 }
 
-//
-// EKS Cluster IAM Role
+# -----------------------------------------------------------------------------
+# EKS Cluster IAM Role
+# -----------------------------------------------------------------------------
 
 resource "aws_iam_role" "cluster" {
   name = var.name
@@ -53,8 +58,9 @@ resource "aws_iam_role_policy_attachment" "cluster" {
   role       = aws_iam_role.cluster.name
 }
 
-//
-// CPU Node Group IAM Role
+# -----------------------------------------------------------------------------
+# CPU Node Group IAM Role
+# -----------------------------------------------------------------------------
 
 resource "aws_iam_role" "cpu_nodes" {
   name = "${var.name}-cpu-node-group"
@@ -91,8 +97,9 @@ resource "aws_iam_role_policy_attachment" "cpu_nodes-AmazonS3ReadOnlyAccess" {
   role       = aws_iam_role.cpu_nodes.name
 }
 
-//
-// GPU Node Group IAM Role
+# -----------------------------------------------------------------------------
+# GPU Node Group IAM Role
+# -----------------------------------------------------------------------------
 
 resource "aws_iam_role" "gpu_nodes" {
   name = "${var.name}-gpu-node-group"
@@ -129,8 +136,10 @@ resource "aws_iam_role_policy_attachment" "gpu_nodes-AmazonS3ReadOnlyAccess" {
   role       = aws_iam_role.gpu_nodes.name
 }
 
-//
-// CPU EKS Node Group
+# -----------------------------------------------------------------------------
+# CPU EKS Node Group
+# -----------------------------------------------------------------------------
+
 resource "aws_eks_node_group" "cpu" {
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.name}-cpu-node-group"
@@ -159,8 +168,10 @@ resource "aws_eks_node_group" "cpu" {
   ]
 }
 
-//
-// GPU EKS Node Group
+# -----------------------------------------------------------------------------
+# GPU EKS Node Group
+# -----------------------------------------------------------------------------
+
 resource "aws_eks_node_group" "gpu" {
   cluster_name    = aws_eks_cluster.this.name
   node_group_name = "${var.name}-gpu-node-group"
@@ -191,8 +202,10 @@ resource "aws_eks_node_group" "gpu" {
   ]
 }
 
-//
-// EKS Access Entries
+# -----------------------------------------------------------------------------
+# EKS Access Entries
+# -----------------------------------------------------------------------------
+
 resource "aws_eks_access_entry" "admin_users" {
   for_each      = toset(var.admin_users)
   cluster_name  = aws_eks_cluster.this.name
