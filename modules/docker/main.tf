@@ -6,7 +6,8 @@
 
 
 locals {
-  full_ref = "${var.image_name}:${var.image_tag}"
+  full_ref  = "${var.image_name}:${var.image_tag}"
+  build_sha = sha1(join("", [for f in fileset(var.build_context, "**") : sha1(file("${var.build_context}/${f}"))]))
 }
 
 resource "aws_ecr_repository" "this" {
@@ -27,7 +28,7 @@ resource "docker_image" "this" {
     platform = var.platform
   }
   triggers = {
-    build_sha = sha1(join("", [for f in fileset(var.build_context, "**") : sha1(file("${var.build_context}/${f}"))]))
+    build_sha = local.build_sha
   }
 }
 
@@ -37,6 +38,6 @@ resource "docker_registry_image" "this" {
   depends_on    = [docker_image.this]
 
   triggers = {
-    build_sha = docker_image.this.repo_digest
+    build_sha = local.build_sha
   }
 }
