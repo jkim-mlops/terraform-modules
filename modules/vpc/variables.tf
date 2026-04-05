@@ -21,3 +21,20 @@ variable "subnets" {
     public            = bool
   }))
 }
+
+variable "nat_type" {
+  description = "Type of NAT to use for private subnet internet access"
+  type        = string
+  default     = "gateway"
+
+  validation {
+    condition     = contains(["gateway", "instance"], var.nat_type)
+    error_message = "nat_type must be 'gateway' or 'instance'"
+  }
+}
+
+variable "nat_instance_type" {
+  description = "EC2 instance type for NAT instance (only used when nat_type = 'instance')"
+  type        = string
+  default     = "t3.micro"
+}

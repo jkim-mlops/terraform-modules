@@ -5,8 +5,9 @@
  */
 
 
-//
-// CloudWatch Log Groups
+# -----------------------------------------------------------------------------
+# CloudWatch Log Groups
+# -----------------------------------------------------------------------------
 
 locals {
   # Filter tasks that have IAM requirements
@@ -23,8 +24,9 @@ resource "aws_cloudwatch_log_group" "task_logs" {
   retention_in_days = var.log_retention_days
 }
 
-//
-// Cluster
+# -----------------------------------------------------------------------------
+# Cluster
+# -----------------------------------------------------------------------------
 
 resource "aws_ecs_cluster" "this" {
   name = var.name
@@ -35,8 +37,9 @@ resource "aws_ecs_cluster" "this" {
   }
 }
 
-//
-// IAM Permissions
+# -----------------------------------------------------------------------------
+# IAM Permissions
+# -----------------------------------------------------------------------------
 
 resource "aws_iam_role" "this" {
   name               = "${var.name}-task-exec"
@@ -83,8 +86,9 @@ resource "aws_iam_role_policy" "this" {
   policy = data.aws_iam_policy_document.task_exec.json
 }
 
-//
-// Task IAM Roles (for tasks that need AWS API access)
+# -----------------------------------------------------------------------------
+# Task IAM Roles (for tasks that need AWS API access)
+# -----------------------------------------------------------------------------
 
 data "aws_iam_policy_document" "task_assume_role" {
   statement {
@@ -129,9 +133,9 @@ resource "aws_iam_role_policy" "task" {
   policy = data.aws_iam_policy_document.task[each.key].json
 }
 
-//
-// EC2 Instance Role & Instance Profile (for ECS container instances)
-// Provides permissions for the EC2 host to register with ECS and send logs/metrics.
+# -----------------------------------------------------------------------------
+# EC2 Instance Role and Instance Profile
+# -----------------------------------------------------------------------------
 
 data "aws_iam_policy_document" "instance_assume_role" {
   statement {
@@ -159,8 +163,9 @@ resource "aws_iam_instance_profile" "instance" {
   role = aws_iam_role.instance.name
 }
 
-//
-// Task Definition
+# -----------------------------------------------------------------------------
+# Task Definition
+# -----------------------------------------------------------------------------
 
 resource "aws_ecs_task_definition" "this" {
   for_each                 = var.tasks
@@ -197,8 +202,9 @@ resource "aws_ecs_task_definition" "this" {
 
 }
 
-//
-// Launch Template (ECS Optimized)
+# -----------------------------------------------------------------------------
+# Launch Template (ECS Optimized)
+# -----------------------------------------------------------------------------
 
 data "aws_ami" "this" {
   most_recent = true
@@ -240,8 +246,9 @@ echo "ECS_CLUSTER=${aws_ecs_cluster.this.name}" >> /etc/ecs/ecs.config
   )
 }
 
-//
-// Capacity Provider (Scale to Zero)
+# -----------------------------------------------------------------------------
+# Capacity Provider (Scale to Zero)
+# -----------------------------------------------------------------------------
 
 resource "aws_autoscaling_group" "this" {
   name                  = "${var.name}-scale-to-zero"
@@ -303,8 +310,9 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
   }
 }
 
-//
-// Service
+# -----------------------------------------------------------------------------
+# Service
+# -----------------------------------------------------------------------------
 
 resource "aws_security_group" "this" {
   name   = "default-ecs-sg"

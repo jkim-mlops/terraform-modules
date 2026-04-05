@@ -3,57 +3,48 @@
 
 ECS cluster setup with auto-scaling via Capacity Providers.
 
-## Example
+## Requirements
 
-```hcl
-module "ecs" {
-  // please remember to version constrain this module with `?ref=<your version>`
-  source = "git@github.com:jkim-mlops/terraform-modules.git//modules/ecs"
+| Name | Version |
+|------|---------|
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.27.0 |
 
-  name            = var.name
-  cidr_blocks     = [module.vpc.vpc_cidr_block]
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.private_subnet_ids
-  architecture    = "arm64"
-  instance_type   = "m6g.large"
-  logging_enabled = true
-  aws_region      = var.aws_region
-  tasks = {
-    "${module.docker.image_name}" = {
-      container_definition = {
-        name      = module.docker.image_name
-        image     = "${module.docker.ecr_repo.repository_url}:${module.docker.image_tag}"
-        cpu       = 1024 * 2
-        memory    = 1048 * 4
-        essential = true
-        environment = [
-          {
-            name  = "SQS_QUEUE_URL"
-            value = module.sqs.queue.id
-          },
-          {
-            name  = "LOGURU_LEVEL"
-            value = "INFO"
-          }
-        ]
-      }
-      iam = {
-        sqsPermissions = {
-          actions = [
-            "sqs:SendMessage",
-            "sqs:ReceiveMessage",
-            "sqs:DeleteMessage"
-          ]
-          resources = [
-            module.sqs.queue.arn,
-            module.sqs.dlq.arn
-          ]
-        }
-      }
-    }
-  }
-}
-```
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.27.0 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_autoscaling_group.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group) | resource |
+| [aws_cloudwatch_log_group.task_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_ecs_capacity_provider.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_capacity_provider) | resource |
+| [aws_ecs_cluster.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster) | resource |
+| [aws_ecs_cluster_capacity_providers.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster_capacity_providers) | resource |
+| [aws_ecs_service.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
+| [aws_ecs_task_definition.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
+| [aws_iam_instance_profile.instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
+| [aws_iam_role.instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy.task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy_attachment.instance_ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_launch_template.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
+| [aws_security_group.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_ami.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_iam_policy_document.assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.instance_assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.task_assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.task_exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ## Inputs
 
@@ -86,20 +77,4 @@ module "ecs" {
 | <a name="output_task_definitions"></a> [task\_definitions](#output\_task\_definitions) | Map of ECS task definitions by task name |
 | <a name="output_task_execution_role"></a> [task\_execution\_role](#output\_task\_execution\_role) | ARN of the ECS task execution role |
 | <a name="output_task_roles"></a> [task\_roles](#output\_task\_roles) | Map of ECS task roles by task name |
-
-## Modules
-
-No modules.
-
-## Requirements
-
-| Name | Version |
-|------|---------|
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.27.0 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.27.0 |
 <!-- END_TF_DOCS -->

@@ -5,12 +5,15 @@
  */
 
 
-//
-// VPC and Subnets
+# -----------------------------------------------------------------------------
+# VPC and Subnets
+# -----------------------------------------------------------------------------
 
 resource "aws_vpc" "this" {
-  cidr_block       = var.cidr_block
-  instance_tenancy = "default"
+  cidr_block           = var.cidr_block
+  instance_tenancy     = "default"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = {
     Name = var.name
@@ -29,8 +32,9 @@ resource "aws_subnet" "this" {
   }
 }
 
-//
-// Route Tables to Public and Private Subnets
+# -----------------------------------------------------------------------------
+# Route Tables
+# -----------------------------------------------------------------------------
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id
@@ -59,8 +63,9 @@ resource "aws_route_table_association" "this" {
   route_table_id = each.value.public ? aws_route_table.public.id : aws_route_table.private.id
 }
 
-//
-// Network Connections (VPC Endpoints and Internet Gateway)
+# -----------------------------------------------------------------------------
+# Network Connections (VPC Endpoints and Internet Gateway)
+# -----------------------------------------------------------------------------
 
 resource "aws_vpc_endpoint" "this" {
   vpc_id       = aws_vpc.this.id
@@ -82,31 +87,4 @@ resource "aws_internet_gateway" "this" {
   tags = {
     Name = "${var.name}-ig"
   }
-}
-
-
-//
-// NAT Gateway
-
-resource "aws_eip" "nat" {
-  domain = "vpc"
-  tags = {
-    Name = var.name
-  }
-}
-
-resource "aws_nat_gateway" "this" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = [for s in aws_subnet.this : s.id if s.map_public_ip_on_launch][0]
-
-  tags = {
-    Name = var.name
-  }
-}
-
-# Add route to NAT Gateway for private subnets
-resource "aws_route" "private_nat" {
-  route_table_id         = aws_route_table.private.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.this.id
 }
