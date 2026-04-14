@@ -55,7 +55,7 @@ No modules.
 | <a name="input_cidr_block"></a> [cidr\_block](#input\_cidr\_block) | CIDR block for the VPC | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | Name of the VPC | `string` | n/a | yes |
 | <a name="input_nat_instance_type"></a> [nat\_instance\_type](#input\_nat\_instance\_type) | EC2 instance type for NAT instance (only used when nat\_type = 'instance') | `string` | `"t3.micro"` | no |
-| <a name="input_nat_type"></a> [nat\_type](#input\_nat\_type) | Type of NAT to use for private subnet internet access | `string` | `"gateway"` | no |
+| <a name="input_nat_type"></a> [nat\_type](#input\_nat\_type) | Type of NAT for private subnet internet access: 'gateway', 'instance', or 'none' (disables NAT and interface endpoints) | `string` | `"gateway"` | no |
 | <a name="input_region"></a> [region](#input\_region) | AWS region for the VPC | `string` | n/a | yes |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | Subnet configurations for the VPC | <pre>map(object({<br/>    availability_zone = string<br/>    cidr_block        = string<br/>    public            = bool<br/>  }))</pre> | n/a | yes |
 

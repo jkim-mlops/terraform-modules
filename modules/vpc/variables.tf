@@ -23,13 +23,13 @@ variable "subnets" {
 }
 
 variable "nat_type" {
-  description = "Type of NAT to use for private subnet internet access"
+  description = "Type of NAT for private subnet internet access: 'gateway', 'instance', or 'none' (disables NAT and interface endpoints)"
   type        = string
   default     = "gateway"
 
   validation {
-    condition     = contains(["gateway", "instance"], var.nat_type)
-    error_message = "nat_type must be 'gateway' or 'instance'"
+    condition     = contains(["gateway", "instance", "none"], var.nat_type)
+    error_message = "nat_type must be 'gateway', 'instance', or 'none'"
   }
 }
 
