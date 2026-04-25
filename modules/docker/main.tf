@@ -6,8 +6,20 @@
 
 
 locals {
-  full_ref  = "${var.image_name}:${var.image_tag}"
-  build_sha = sha1(join("", [for f in fileset(var.build_context, "**") : sha1(file("${var.build_context}/${f}"))]))
+  full_ref = "${var.image_name}:${var.image_tag}"
+
+  excluded_dirs = ["__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache"]
+
+  hashed_files = [
+    for f in fileset(var.build_context, "**") :
+    filesha256("${var.build_context}/${f}")
+    if !anytrue([
+      for d in local.excluded_dirs :
+      startswith(f, "${d}/") || strcontains(f, "/${d}/")
+    ])
+  ]
+
+  build_sha = sha1(join("", local.hashed_files))
 }
 
 resource "aws_ecr_repository" "this" {
