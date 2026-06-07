@@ -193,7 +193,7 @@ resource "aws_iam_role" "mi_infra" {
 resource "aws_iam_role_policy_attachment" "mi_infra" {
   count      = var.managed_instances != null ? 1 : 0
   role       = aws_iam_role.mi_infra[0].name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRolePolicyForManagedInstances"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonECSInfrastructureRolePolicyForManagedInstances"
 }
 
 # -----------------------------------------------------------------------------
