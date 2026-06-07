@@ -1,7 +1,12 @@
 <!-- BEGIN_TF_DOCS -->
 # ecs
 
-ECS cluster setup with auto-scaling via Capacity Providers.
+ECS cluster setup with auto-scaling via Capacity Providers. Supports FARGATE,
+an EC2 Auto Scaling Group, and ECS Managed Instances. Setting the
+`managed_instances` object creates a Managed Instances capacity provider
+(associated with the cluster directly), suitable for privileged workloads such
+as Docker-in-Docker build runners that Fargate cannot run. See the example
+below for a Managed Instances + privileged Docker-in-Docker configuration.
 
 ## Example
 
@@ -9,7 +14,9 @@ ECS cluster setup with auto-scaling via Capacity Providers.
 /**
  * # ecs/example
  *
- * Example usage of the ECS module with VPC, Docker, and SQS integration.
+ * Example usage of the ECS module: a default FARGATE worker (with SQS access)
+ * alongside a privileged Docker-in-Docker build runner on an ECS Managed
+ * Instances capacity provider sized for ARM64 / Graviton.
  */
 
 module "ecs" {
@@ -21,10 +28,27 @@ module "ecs" {
   vpc_id          = module.vpc.vpc_id
   subnet_ids      = module.vpc.private_subnet_ids
   architecture    = "arm64"
-  instance_type   = "m6g.large"
+  instance_type   = "m6g.large" # used by the ASG path only; MI selects via instance_requirements
+  launch_type     = "FARGATE"   # default capacity provider for non-MI tasks
   logging_enabled = true
   aws_region      = var.aws_region
+
+  # Presence of this object creates the Managed Instances capacity provider.
+  managed_instances = {
+    instance_requirements = {
+      vcpu_count            = { min = 2, max = 8 }
+      memory_mib            = { min = 4096 }          # >= 4 GiB
+      cpu_manufacturers     = ["amazon-web-services"] # Graviton / ARM64
+      instance_generations  = ["current"]
+      burstable_performance = "excluded" # steady CPU for builds
+    }
+    storage_size_gib       = 100     # room for Docker image layers
+    scale_in_after_seconds = 0       # scale to zero when idle (raise to keep instances warm)
+    monitoring             = "BASIC" # or "DETAILED"
+  }
+
   tasks = {
+    # Default FARGATE worker.
     "${module.docker.image_name}" = {
       container_definition = {
         name      = module.docker.image_name
@@ -57,6 +81,22 @@ module "ecs" {
         }
       }
     }
+
+    # Privileged Docker-in-Docker runner on Managed Instances.
+    dind = {
+      requires_compatibilities = ["MANAGED_INSTANCES"]
+      container_definition = {
+        name       = "dind"
+        image      = "${module.docker.ecr_repo.repository_url}:${module.docker.image_tag}"
+        cpu        = 1024 * 2
+        memory     = 1048 * 4
+        essential  = true
+        privileged = true # required for Docker-in-Docker
+        linuxParameters = {
+          capabilities = { add = ["SYS_ADMIN", "NET_ADMIN"] }
+        }
+      }
+    }
   }
 }
 ```
@@ -80,7 +120,7 @@ module "ecs" {
 | <a name="input_name"></a> [name](#input\_name) | Name of the ECS cluster | `string` | n/a | yes |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | List of security group IDs for the ECS service. | `list(string)` | `[]` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs for the ECS service network configuration. | `list(string)` | n/a | yes |
-| <a name="input_tasks"></a> [tasks](#input\_tasks) | Container definitions for the ECS task | <pre>map(object({<br/>    container_definition = object({<br/>      name      = string<br/>      image     = string<br/>      cpu       = number<br/>      memory    = number<br/>      essential = bool<br/>      environment = optional(list(object({<br/>        name  = string<br/>        value = string<br/>      })))<br/>      portMappings = optional(list(object({<br/>        containerPort = number<br/>        hostPort      = number<br/>        protocol      = string<br/>      })))<br/>    })<br/>    iam = optional(map(object({<br/>      actions   = list(string)<br/>      resources = list(string)<br/>    })), {})<br/>  }))</pre> | n/a | yes |
+| <a name="input_tasks"></a> [tasks](#input\_tasks) | Container definitions for the ECS task | <pre>map(object({<br/>    container_definition = object({<br/>      name      = string<br/>      image     = string<br/>      cpu       = number<br/>      memory    = number<br/>      essential = bool<br/>      environment = optional(list(object({<br/>        name  = string<br/>        value = string<br/>      })))<br/>      portMappings = optional(list(object({<br/>        containerPort = number<br/>        hostPort      = number<br/>        protocol      = string<br/>      })))<br/>      privileged = optional(bool) # elevated host privileges (e.g. Docker-in-Docker); not valid on FARGATE<br/>      linuxParameters = optional(object({<br/>        capabilities = optional(object({<br/>          add  = optional(list(string))<br/>          drop = optional(list(string))<br/>        }))<br/>        initProcessEnabled = optional(bool)<br/>      }))<br/>    })<br/>    requires_compatibilities = optional(list(string)) # override launch_type default, e.g. ["MANAGED_INSTANCES"]<br/>    iam = optional(map(object({<br/>      actions   = list(string)<br/>      resources = list(string)<br/>    })), {})<br/>  }))</pre> | n/a | yes |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID where the ECS service will be deployed | `string` | n/a | yes |
 
 ## Outputs

@@ -26,6 +26,7 @@ module "docker" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_build_args"></a> [build\_args](#input\_build\_args) | Build-time ARGs passed to the docker build. | `map(string)` | `{}` | no |
 | <a name="input_build_context"></a> [build\_context](#input\_build\_context) | The build context for building the Docker image. | `string` | n/a | yes |
 | <a name="input_image_name"></a> [image\_name](#input\_image\_name) | The name of the Docker image to pull or build. | `string` | n/a | yes |
 | <a name="input_image_tag"></a> [image\_tag](#input\_image\_tag) | The tag of the Docker image to pull or build. | `string` | n/a | yes |

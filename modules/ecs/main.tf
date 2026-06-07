@@ -1,7 +1,12 @@
 /**
  * # ecs
  *
- * ECS cluster setup with auto-scaling via Capacity Providers. 
+ * ECS cluster setup with auto-scaling via Capacity Providers. Supports FARGATE,
+ * an EC2 Auto Scaling Group, and ECS Managed Instances. Setting the
+ * `managed_instances` object creates a Managed Instances capacity provider
+ * (associated with the cluster directly), suitable for privileged workloads such
+ * as Docker-in-Docker build runners that Fargate cannot run. See the example
+ * below for a Managed Instances + privileged Docker-in-Docker configuration.
  */
 
 
