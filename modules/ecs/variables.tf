@@ -51,7 +51,16 @@ variable "tasks" {
         hostPort      = number
         protocol      = string
       })))
+      privileged = optional(bool) # elevated host privileges (e.g. Docker-in-Docker); not valid on FARGATE
+      linuxParameters = optional(object({
+        capabilities = optional(object({
+          add  = optional(list(string))
+          drop = optional(list(string))
+        }))
+        initProcessEnabled = optional(bool)
+      }))
     })
+    requires_compatibilities = optional(list(string)) # override launch_type default, e.g. ["MANAGED_INSTANCES"]
     iam = optional(map(object({
       actions   = list(string)
       resources = list(string)

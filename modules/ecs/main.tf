@@ -198,7 +198,7 @@ resource "aws_iam_role_policy_attachment" "mi_infra" {
 resource "aws_ecs_task_definition" "this" {
   for_each                 = var.tasks
   family                   = each.key
-  requires_compatibilities = [upper(var.launch_type)]
+  requires_compatibilities = each.value.requires_compatibilities != null ? each.value.requires_compatibilities : [upper(var.launch_type)]
   network_mode             = "awsvpc"
   cpu                      = each.value.container_definition.cpu
   memory                   = each.value.container_definition.memory
@@ -221,7 +221,10 @@ resource "aws_ecs_task_definition" "this" {
   ])
 
   dynamic "runtime_platform" {
-    for_each = upper(var.launch_type) == "FARGATE" ? [1] : []
+    for_each = anytrue([
+      for c in(each.value.requires_compatibilities != null ? each.value.requires_compatibilities : [upper(var.launch_type)]) :
+      contains(["FARGATE", "MANAGED_INSTANCES"], upper(c))
+    ]) ? [1] : []
     content {
       operating_system_family = "LINUX"
       cpu_architecture        = upper(var.architecture == "arm64" ? "ARM64" : "X86_64")
