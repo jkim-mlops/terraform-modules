@@ -400,6 +400,10 @@ resource "aws_ecs_capacity_provider" "mi" {
       }
     }
   }
+
+  # ECS validates the infrastructure role (e.g. ec2:DescribeInstanceTypeOfferings)
+  # at creation, so the policy must be attached first.
+  depends_on = [aws_iam_role_policy_attachment.mi_infra]
 }
 
 # -----------------------------------------------------------------------------
