@@ -35,12 +35,14 @@ resource "aws_ecr_repository" "this" {
 resource "docker_image" "this" {
   name = local.full_ref
   build {
-    context  = var.build_context
-    tag      = ["${aws_ecr_repository.this.repository_url}:${var.image_tag}"]
-    platform = var.platform
+    context    = var.build_context
+    tag        = ["${aws_ecr_repository.this.repository_url}:${var.image_tag}"]
+    platform   = var.platform
+    build_args = var.build_args
   }
   triggers = {
-    build_sha = local.build_sha
+    build_sha  = local.build_sha
+    build_args = jsonencode(var.build_args)
   }
 }
 
