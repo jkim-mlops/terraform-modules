@@ -101,6 +101,26 @@ variable "architecture" {
   }
 }
 
+variable "managed_instances" {
+  description = "Managed Instances capacity provider config. When non-null, creates an MI capacity provider; null disables it."
+  type = object({
+    instance_requirements = object({
+      vcpu_count              = object({ min = number, max = optional(number) })
+      memory_mib              = object({ min = number, max = optional(number) })
+      cpu_manufacturers       = optional(list(string)) # e.g. ["amazon-web-services"] for Graviton
+      allowed_instance_types  = optional(list(string)) # pin specific types if desired
+      excluded_instance_types = optional(list(string))
+      burstable_performance   = optional(string) # "included" | "excluded" | "required"
+      instance_generations    = optional(list(string)) # e.g. ["current"]
+    })
+    scale_in_after_seconds = optional(number) # warm-reuse delay; 0 = scale to zero immediately
+    storage_size_gib       = optional(number) # root volume for DinD scratch
+    monitoring             = optional(string) # "BASIC" | "DETAILED"
+    propagate_tags         = optional(bool, true)
+  })
+  default = null
+}
+
 variable "logging_enabled" {
   description = "Enable CloudWatch logging for tasks"
   type        = bool
