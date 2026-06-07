@@ -164,6 +164,34 @@ resource "aws_iam_instance_profile" "instance" {
 }
 
 # -----------------------------------------------------------------------------
+# Managed Instances infrastructure role (lets ECS launch/manage instances)
+# -----------------------------------------------------------------------------
+
+data "aws_iam_policy_document" "mi_infra_assume" {
+  count = var.managed_instances != null ? 1 : 0
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ecs.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "mi_infra" {
+  count              = var.managed_instances != null ? 1 : 0
+  name               = "${var.name}-ecs-mi-infra"
+  assume_role_policy = data.aws_iam_policy_document.mi_infra_assume[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "mi_infra" {
+  count      = var.managed_instances != null ? 1 : 0
+  role       = aws_iam_role.mi_infra[0].name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRolePolicyForManagedInstances"
+}
+
+# -----------------------------------------------------------------------------
 # Task Definition
 # -----------------------------------------------------------------------------
 
@@ -307,6 +335,62 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
   default_capacity_provider_strategy {
     capacity_provider = aws_ecs_capacity_provider.this.name
     weight            = 1
+  }
+}
+
+# -----------------------------------------------------------------------------
+# Managed Instances capacity provider (associated via the top-level `cluster`
+# argument, which avoids the ASG+MI conflict in aws_ecs_cluster_capacity_providers)
+# -----------------------------------------------------------------------------
+
+resource "aws_ecs_capacity_provider" "mi" {
+  count   = var.managed_instances != null ? 1 : 0
+  name    = "${var.name}-mi"
+  cluster = aws_ecs_cluster.this.name
+
+  managed_instances_provider {
+    infrastructure_role_arn = aws_iam_role.mi_infra[0].arn
+    propagate_tags          = var.managed_instances.propagate_tags ? "CAPACITY_PROVIDER" : "NONE"
+
+    dynamic "infrastructure_optimization" {
+      for_each = var.managed_instances.scale_in_after_seconds != null ? [1] : []
+      content {
+        scale_in_after = var.managed_instances.scale_in_after_seconds
+      }
+    }
+
+    instance_launch_template {
+      ec2_instance_profile_arn = aws_iam_instance_profile.instance.arn
+      monitoring               = var.managed_instances.monitoring
+
+      instance_requirements {
+        vcpu_count {
+          min = var.managed_instances.instance_requirements.vcpu_count.min
+          max = var.managed_instances.instance_requirements.vcpu_count.max
+        }
+        memory_mib {
+          min = var.managed_instances.instance_requirements.memory_mib.min
+          max = var.managed_instances.instance_requirements.memory_mib.max
+        }
+        cpu_manufacturers       = var.managed_instances.instance_requirements.cpu_manufacturers
+        allowed_instance_types  = var.managed_instances.instance_requirements.allowed_instance_types
+        excluded_instance_types = var.managed_instances.instance_requirements.excluded_instance_types
+        burstable_performance   = var.managed_instances.instance_requirements.burstable_performance
+        instance_generations    = var.managed_instances.instance_requirements.instance_generations
+      }
+
+      network_configuration {
+        subnets         = var.subnet_ids
+        security_groups = length(var.security_group_ids) == 0 ? [aws_security_group.this.id] : var.security_group_ids
+      }
+
+      dynamic "storage_configuration" {
+        for_each = var.managed_instances.storage_size_gib != null ? [1] : []
+        content {
+          storage_size_gib = var.managed_instances.storage_size_gib
+        }
+      }
+    }
   }
 }
 

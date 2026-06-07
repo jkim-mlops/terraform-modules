@@ -110,7 +110,7 @@ variable "managed_instances" {
       cpu_manufacturers       = optional(list(string)) # e.g. ["amazon-web-services"] for Graviton
       allowed_instance_types  = optional(list(string)) # pin specific types if desired
       excluded_instance_types = optional(list(string))
-      burstable_performance   = optional(string) # "included" | "excluded" | "required"
+      burstable_performance   = optional(string)       # "included" | "excluded" | "required"
       instance_generations    = optional(list(string)) # e.g. ["current"]
     })
     scale_in_after_seconds = optional(number) # warm-reuse delay; 0 = scale to zero immediately

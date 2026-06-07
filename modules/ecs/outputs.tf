@@ -26,3 +26,8 @@ output "task_definitions" {
   description = "Map of ECS task definitions by task name"
   value       = aws_ecs_task_definition.this
 }
+
+output "managed_instances_capacity_provider" {
+  description = "Name of the Managed Instances capacity provider, or null when disabled."
+  value       = var.managed_instances != null ? aws_ecs_capacity_provider.mi[0].name : null
+}
