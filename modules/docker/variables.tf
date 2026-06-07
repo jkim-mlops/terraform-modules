@@ -24,3 +24,9 @@ variable "build_args" {
   type        = map(string)
   default     = {}
 }
+
+variable "build_hash_excludes" {
+  description = "Glob patterns (relative to build_context, e.g. \"**/test_*.py\") whose files are excluded from the build hash, so edits to them don't trigger a rebuild."
+  type        = list(string)
+  default     = []
+}

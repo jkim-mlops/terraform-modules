@@ -28,6 +28,7 @@ module "docker" {
 |------|-------------|------|---------|:--------:|
 | <a name="input_build_args"></a> [build\_args](#input\_build\_args) | Build-time ARGs passed to the docker build. | `map(string)` | `{}` | no |
 | <a name="input_build_context"></a> [build\_context](#input\_build\_context) | The build context for building the Docker image. | `string` | n/a | yes |
+| <a name="input_build_hash_excludes"></a> [build\_hash\_excludes](#input\_build\_hash\_excludes) | Glob patterns (relative to build\_context, e.g. "**/test\_*.py") whose files are excluded from the build hash, so edits to them don't trigger a rebuild. | `list(string)` | `[]` | no |
 | <a name="input_image_name"></a> [image\_name](#input\_image\_name) | The name of the Docker image to pull or build. | `string` | n/a | yes |
 | <a name="input_image_tag"></a> [image\_tag](#input\_image\_tag) | The tag of the Docker image to pull or build. | `string` | n/a | yes |
 | <a name="input_platform"></a> [platform](#input\_platform) | The target platform for the Docker image build (e.g., linux/amd64, linux/arm64). | `string` | n/a | yes |
