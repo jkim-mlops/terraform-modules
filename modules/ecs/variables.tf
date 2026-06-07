@@ -119,6 +119,36 @@ variable "managed_instances" {
     propagate_tags         = optional(bool, true)
   })
   default = null
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.monitoring == null || contains(["BASIC", "DETAILED"], coalesce(var.managed_instances.monitoring, "BASIC"))
+    error_message = "managed_instances.monitoring must be one of: BASIC, DETAILED."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.burstable_performance == null || contains(["included", "excluded", "required"], coalesce(var.managed_instances.instance_requirements.burstable_performance, "included"))
+    error_message = "managed_instances.instance_requirements.burstable_performance must be one of: included, excluded, required."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.cpu_manufacturers == null || alltrue([for m in coalesce(var.managed_instances.instance_requirements.cpu_manufacturers, []) : contains(["intel", "amd", "amazon-web-services"], m)])
+    error_message = "managed_instances.instance_requirements.cpu_manufacturers values must be among: intel, amd, amazon-web-services."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.instance_generations == null || alltrue([for g in coalesce(var.managed_instances.instance_requirements.instance_generations, []) : contains(["current", "previous"], g)])
+    error_message = "managed_instances.instance_requirements.instance_generations values must be among: current, previous."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.vcpu_count.max == null || var.managed_instances.instance_requirements.vcpu_count.min <= var.managed_instances.instance_requirements.vcpu_count.max
+    error_message = "managed_instances.instance_requirements.vcpu_count.min must be <= max."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.memory_mib.max == null || var.managed_instances.instance_requirements.memory_mib.min <= var.managed_instances.instance_requirements.memory_mib.max
+    error_message = "managed_instances.instance_requirements.memory_mib.min must be <= max."
+  }
 }
 
 variable "logging_enabled" {
