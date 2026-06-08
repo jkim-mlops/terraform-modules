@@ -196,6 +196,29 @@ resource "aws_iam_role_policy_attachment" "mi_infra" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonECSInfrastructureRolePolicyForManagedInstances"
 }
 
+# The managed policy only allows PassRole on roles named "ecsInstanceRole*", so
+# grant it explicitly for this module's instance role.
+data "aws_iam_policy_document" "mi_infra_passrole" {
+  count = var.managed_instances != null ? 1 : 0
+  statement {
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = [aws_iam_role.instance.arn]
+    condition {
+      test     = "StringLike"
+      variable = "iam:PassedToService"
+      values   = ["ec2.*"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "mi_infra_passrole" {
+  count  = var.managed_instances != null ? 1 : 0
+  name   = "${var.name}-mi-passrole"
+  role   = aws_iam_role.mi_infra[0].name
+  policy = data.aws_iam_policy_document.mi_infra_passrole[0].json
+}
+
 # -----------------------------------------------------------------------------
 # Task Definition
 # -----------------------------------------------------------------------------
