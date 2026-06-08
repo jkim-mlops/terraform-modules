@@ -59,8 +59,18 @@ variable "tasks" {
         }))
         initProcessEnabled = optional(bool)
       }))
+      mountPoints = optional(list(object({
+        sourceVolume  = string
+        containerPath = string
+        readOnly      = optional(bool)
+      })))
     })
     requires_compatibilities = optional(list(string)) # override launch_type default, e.g. ["MANAGED_INSTANCES"]
+    # Ephemeral host volumes (empty host path -> ECS assigns a path on the
+    # instance's real filesystem). Used to back /var/lib/docker for DinD.
+    volumes = optional(list(object({
+      name = string
+    })), [])
     iam = optional(map(object({
       actions   = list(string)
       resources = list(string)

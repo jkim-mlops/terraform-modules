@@ -259,6 +259,15 @@ resource "aws_ecs_task_definition" "this" {
     }
   }
 
+  # Empty host volumes: ECS assigns an ephemeral path on the instance's real
+  # filesystem (used to back /var/lib/docker so DinD's overlay2 isn't nested).
+  dynamic "volume" {
+    for_each = each.value.volumes
+    content {
+      name = volume.value.name
+    }
+  }
+
 }
 
 # -----------------------------------------------------------------------------
