@@ -51,7 +51,26 @@ variable "tasks" {
         hostPort      = number
         protocol      = string
       })))
+      privileged = optional(bool) # elevated host privileges (e.g. Docker-in-Docker); not valid on FARGATE
+      linuxParameters = optional(object({
+        capabilities = optional(object({
+          add  = optional(list(string))
+          drop = optional(list(string))
+        }))
+        initProcessEnabled = optional(bool)
+      }))
+      mountPoints = optional(list(object({
+        sourceVolume  = string
+        containerPath = string
+        readOnly      = optional(bool)
+      })))
     })
+    requires_compatibilities = optional(list(string)) # override launch_type default, e.g. ["MANAGED_INSTANCES"]
+    # Ephemeral host volumes (empty host path -> ECS assigns a path on the
+    # instance's real filesystem). Used to back /var/lib/docker for DinD.
+    volumes = optional(list(object({
+      name = string
+    })), [])
     iam = optional(map(object({
       actions   = list(string)
       resources = list(string)
@@ -98,6 +117,56 @@ variable "architecture" {
   validation {
     condition     = contains(["x86_64", "arm64"], var.architecture)
     error_message = "architecture must be one of: x86_64, arm64"
+  }
+}
+
+variable "managed_instances" {
+  description = "Managed Instances capacity provider config. When non-null, creates an MI capacity provider; null disables it."
+  type = object({
+    instance_requirements = object({
+      vcpu_count              = object({ min = number, max = optional(number) })
+      memory_mib              = object({ min = number, max = optional(number) })
+      cpu_manufacturers       = optional(list(string)) # e.g. ["amazon-web-services"] for Graviton
+      allowed_instance_types  = optional(list(string)) # pin specific types if desired
+      excluded_instance_types = optional(list(string))
+      burstable_performance   = optional(string)       # "included" | "excluded" | "required"
+      instance_generations    = optional(list(string)) # e.g. ["current"]
+    })
+    scale_in_after_seconds = optional(number) # warm-reuse delay; 0 = scale to zero immediately
+    storage_size_gib       = optional(number) # root volume for DinD scratch
+    monitoring             = optional(string) # "BASIC" | "DETAILED"
+    propagate_tags         = optional(bool, true)
+  })
+  default = null
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.monitoring == null || contains(["BASIC", "DETAILED"], coalesce(var.managed_instances.monitoring, "BASIC"))
+    error_message = "managed_instances.monitoring must be one of: BASIC, DETAILED."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.burstable_performance == null || contains(["included", "excluded", "required"], coalesce(var.managed_instances.instance_requirements.burstable_performance, "included"))
+    error_message = "managed_instances.instance_requirements.burstable_performance must be one of: included, excluded, required."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.cpu_manufacturers == null || alltrue([for m in coalesce(var.managed_instances.instance_requirements.cpu_manufacturers, []) : contains(["intel", "amd", "amazon-web-services"], m)])
+    error_message = "managed_instances.instance_requirements.cpu_manufacturers values must be among: intel, amd, amazon-web-services."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.instance_generations == null || alltrue([for g in coalesce(var.managed_instances.instance_requirements.instance_generations, []) : contains(["current", "previous"], g)])
+    error_message = "managed_instances.instance_requirements.instance_generations values must be among: current, previous."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.vcpu_count.max == null || var.managed_instances.instance_requirements.vcpu_count.min <= var.managed_instances.instance_requirements.vcpu_count.max
+    error_message = "managed_instances.instance_requirements.vcpu_count.min must be <= max."
+  }
+
+  validation {
+    condition     = var.managed_instances == null || var.managed_instances.instance_requirements.memory_mib.max == null || var.managed_instances.instance_requirements.memory_mib.min <= var.managed_instances.instance_requirements.memory_mib.max
+    error_message = "managed_instances.instance_requirements.memory_mib.min must be <= max."
   }
 }
 

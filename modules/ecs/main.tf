@@ -1,7 +1,12 @@
 /**
  * # ecs
  *
- * ECS cluster setup with auto-scaling via Capacity Providers. 
+ * ECS cluster setup with auto-scaling via Capacity Providers. Supports FARGATE,
+ * an EC2 Auto Scaling Group, and ECS Managed Instances. Setting the
+ * `managed_instances` object creates a Managed Instances capacity provider
+ * (associated with the cluster directly), suitable for privileged workloads such
+ * as Docker-in-Docker build runners that Fargate cannot run. See the example
+ * below for a Managed Instances + privileged Docker-in-Docker configuration.
  */
 
 
@@ -164,13 +169,64 @@ resource "aws_iam_instance_profile" "instance" {
 }
 
 # -----------------------------------------------------------------------------
+# Managed Instances infrastructure role (lets ECS launch/manage instances)
+# -----------------------------------------------------------------------------
+
+data "aws_iam_policy_document" "mi_infra_assume" {
+  count = var.managed_instances != null ? 1 : 0
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ecs.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "mi_infra" {
+  count              = var.managed_instances != null ? 1 : 0
+  name               = "${var.name}-ecs-mi-infra"
+  assume_role_policy = data.aws_iam_policy_document.mi_infra_assume[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "mi_infra" {
+  count      = var.managed_instances != null ? 1 : 0
+  role       = aws_iam_role.mi_infra[0].name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonECSInfrastructureRolePolicyForManagedInstances"
+}
+
+# The managed policy only allows PassRole on roles named "ecsInstanceRole*", so
+# grant it explicitly for this module's instance role.
+data "aws_iam_policy_document" "mi_infra_passrole" {
+  count = var.managed_instances != null ? 1 : 0
+  statement {
+    effect    = "Allow"
+    actions   = ["iam:PassRole"]
+    resources = [aws_iam_role.instance.arn]
+    condition {
+      test     = "StringLike"
+      variable = "iam:PassedToService"
+      values   = ["ec2.*"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "mi_infra_passrole" {
+  count  = var.managed_instances != null ? 1 : 0
+  name   = "${var.name}-mi-passrole"
+  role   = aws_iam_role.mi_infra[0].name
+  policy = data.aws_iam_policy_document.mi_infra_passrole[0].json
+}
+
+# -----------------------------------------------------------------------------
 # Task Definition
 # -----------------------------------------------------------------------------
 
 resource "aws_ecs_task_definition" "this" {
   for_each                 = var.tasks
   family                   = each.key
-  requires_compatibilities = [upper(var.launch_type)]
+  requires_compatibilities = each.value.requires_compatibilities != null ? each.value.requires_compatibilities : [upper(var.launch_type)]
   network_mode             = "awsvpc"
   cpu                      = each.value.container_definition.cpu
   memory                   = each.value.container_definition.memory
@@ -193,10 +249,22 @@ resource "aws_ecs_task_definition" "this" {
   ])
 
   dynamic "runtime_platform" {
-    for_each = upper(var.launch_type) == "FARGATE" ? [1] : []
+    for_each = anytrue([
+      for c in(each.value.requires_compatibilities != null ? each.value.requires_compatibilities : [upper(var.launch_type)]) :
+      contains(["FARGATE", "MANAGED_INSTANCES"], upper(c))
+    ]) ? [1] : []
     content {
       operating_system_family = "LINUX"
       cpu_architecture        = upper(var.architecture == "arm64" ? "ARM64" : "X86_64")
+    }
+  }
+
+  # Empty host volumes: ECS assigns an ephemeral path on the instance's real
+  # filesystem (used to back /var/lib/docker so DinD's overlay2 isn't nested).
+  dynamic "volume" {
+    for_each = each.value.volumes
+    content {
+      name = volume.value.name
     }
   }
 
@@ -308,6 +376,66 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
     capacity_provider = aws_ecs_capacity_provider.this.name
     weight            = 1
   }
+}
+
+# -----------------------------------------------------------------------------
+# Managed Instances capacity provider (associated via the top-level `cluster`
+# argument, which avoids the ASG+MI conflict in aws_ecs_cluster_capacity_providers)
+# -----------------------------------------------------------------------------
+
+resource "aws_ecs_capacity_provider" "mi" {
+  count   = var.managed_instances != null ? 1 : 0
+  name    = "${var.name}-mi"
+  cluster = aws_ecs_cluster.this.name
+
+  managed_instances_provider {
+    infrastructure_role_arn = aws_iam_role.mi_infra[0].arn
+    propagate_tags          = var.managed_instances.propagate_tags ? "CAPACITY_PROVIDER" : "NONE"
+
+    dynamic "infrastructure_optimization" {
+      for_each = var.managed_instances.scale_in_after_seconds != null ? [1] : []
+      content {
+        scale_in_after = var.managed_instances.scale_in_after_seconds
+      }
+    }
+
+    instance_launch_template {
+      ec2_instance_profile_arn = aws_iam_instance_profile.instance.arn
+      monitoring               = var.managed_instances.monitoring
+
+      instance_requirements {
+        vcpu_count {
+          min = var.managed_instances.instance_requirements.vcpu_count.min
+          max = var.managed_instances.instance_requirements.vcpu_count.max
+        }
+        memory_mib {
+          min = var.managed_instances.instance_requirements.memory_mib.min
+          max = var.managed_instances.instance_requirements.memory_mib.max
+        }
+        cpu_manufacturers       = var.managed_instances.instance_requirements.cpu_manufacturers
+        allowed_instance_types  = var.managed_instances.instance_requirements.allowed_instance_types
+        excluded_instance_types = var.managed_instances.instance_requirements.excluded_instance_types
+        burstable_performance   = var.managed_instances.instance_requirements.burstable_performance
+        instance_generations    = var.managed_instances.instance_requirements.instance_generations
+      }
+
+      network_configuration {
+        subnets         = var.subnet_ids
+        security_groups = length(var.security_group_ids) == 0 ? [aws_security_group.this.id] : var.security_group_ids
+      }
+
+      dynamic "storage_configuration" {
+        for_each = var.managed_instances.storage_size_gib != null ? [1] : []
+        content {
+          storage_size_gib = var.managed_instances.storage_size_gib
+        }
+      }
+    }
+  }
+
+  # ECS validates the infrastructure role (e.g. ec2:DescribeInstanceTypeOfferings)
+  # at creation, so the policy must be attached first.
+  depends_on = [aws_iam_role_policy_attachment.mi_infra]
 }
 
 # -----------------------------------------------------------------------------
